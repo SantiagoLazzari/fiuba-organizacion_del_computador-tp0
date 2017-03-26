@@ -1,4 +1,8 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+#include "argv_parser.h"
 
 char encode_table[64] = {
   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
@@ -67,6 +71,10 @@ void decode(char* encoded_input, char* output) {
 }
 
 int main (int argc, char** argv) {
+
+    option_t options = { stdin, stdout, false };
+    parse_options(argc, argv, &options);
+
     char input[] = {'M', 'a', 'n', '\0'};
     char encoded_output[4] = {0};
     char decoded_input[4] = {0};
@@ -89,5 +97,7 @@ int main (int argc, char** argv) {
     printf("\n");
 
     printf("%s\n", decoded_input);
+
+    close_files(&options);
     return 0;
 }
