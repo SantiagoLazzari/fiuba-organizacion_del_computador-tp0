@@ -1,4 +1,38 @@
+#include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <getopt.h>
+
+void print_help() {
+  // The next function call is unindented, in order to preserve tabs and spaces
+  // in STDOUT.
+  printf(
+"Usage:\n\
+  tp0 -h\n\
+  tp0 -V\n\
+  tp0 [options]\n\
+Options:\n\
+  -V, --version   Print version and quit.\n\
+  -h, --help      Print this information.\n\
+  -i, --input     Location of the input file.\n\
+  -o, --output    Location of the output file.\n\
+  -a, --action    Program action: encode (default) or decode.\n\
+Examples:\n\
+  tp0 -a encode -i ~/input -o ~/output\n\
+  tp0 -a decode\n"
+  );
+}
+
+void print_version() {
+  printf("66.20 - Organizacion de Computadoras \n\
+    Team Members:\n\
+      Battan, Manuel Victoriano\n\
+      Israel, Pablo\n\
+      Lazzari, Santiago\n\
+    TP0 - Version 1.0\n\
+    1Q2017");
+}
 
 char encode_table[64] = {
   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
@@ -66,7 +100,79 @@ void decode(char* encoded_input, char* output) {
   output[2] = (encoded_input[2] % 4) << 6 | encoded_input[3] % 64;
 }
 
+// Based on https://www.gnu.org/software/libc/manual/html_node/Example-of-Getopt.html#Example-of-Getopt
+void parse_options(int argc, char** argv) {
+  int seen_option;
+  opterr = 0;
+  while (true) {
+    static struct option long_options[] = {
+      {"version", no_argument,       NULL, 'V'},
+      {"help",    no_argument,       NULL, 'h'},
+      {"input",   required_argument, NULL, 'i'},
+      {"output",  required_argument, NULL, 'o'},
+      {"action",  optional_argument, NULL, 'a'}
+    };
+
+    int option_index = 0;
+
+    seen_option = getopt_long(
+      argc,
+      argv,
+      "Vhi:o:a::",
+      long_options,
+      &option_index
+    );
+
+    /* Detect the end of the options. */
+    if (seen_option == -1)
+      break;
+
+    switch (seen_option) {
+      case 'V':
+        print_version();
+        break;
+
+      case 'h':
+        print_help();
+        break;
+
+      case 'i':
+        printf ("option -i with value `%s'\n", optarg);
+        break;
+
+      case 'o':
+        printf ("option -o with value `%s'\n", optarg);
+        break;
+
+      case 'a':
+        printf ("option -a with value `%s'\n", optarg);
+        break;
+
+      case '?':
+        if (optopt == 'i' || optopt == 'o')
+          fprintf (stderr, "Option -%c requires an filename argument.\n", optopt);
+        else if (isprint (optopt))
+          fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+        else
+          fprintf (stderr, "Unknown option character `\\x%x'.\n", optopt);
+        break;
+
+      default:
+        abort();
+    }
+  }
+
+  if (optind < argc) {
+    printf ("non-option ARGV-elements: ");
+    while (optind < argc) printf ("%s ", argv[optind++]);
+    putchar ('\n');
+  }
+}
+
 int main (int argc, char** argv) {
+
+    parse_options(argc, argv);
+
     char input[] = {'M', 'a', 'n', '\0'};
     char encoded_output[4] = {0};
     char decoded_input[4] = {0};
