@@ -38,7 +38,8 @@ void print_version() {
       Israel, Pablo\n\
       Lazzari, Santiago\n\
     TP0 - Version 1.0\n\
-    1Q2017");
+    1Q2017\n"
+  );
 }
 
 char encode_table[64] = {
@@ -107,7 +108,8 @@ void decode(char* encoded_input, char* output) {
   output[2] = (encoded_input[2] % 4) << 6 | encoded_input[3] % 64;
 }
 
-// Based on https://www.gnu.org/software/libc/manual/html_node/Example-of-Getopt.html#Example-of-Getopt
+// Based on
+// https://www.gnu.org/software/libc/manual/html_node/Example-of-Getopt.html
 void parse_options(int argc, char** argv, struct program_options* options) {
   int seen_option;
   opterr = 0;
@@ -172,7 +174,8 @@ void parse_options(int argc, char** argv, struct program_options* options) {
         if (optopt == 'i' || optopt == 'o')
           fprintf(stderr, "Option -%c requires an filename argument.\n", optopt);
         else if (optopt == 'a')
-          fprintf(stderr, "Option -%c requires either 'decode' or 'encode' options.\n", optopt);
+          fprintf(stderr,
+            "Option -%c requires either 'decode' or 'encode' options.\n", optopt);
         else if (isprint (optopt))
           fprintf(stderr, "Unknown option `-%c'.\n", optopt);
         else
