@@ -115,10 +115,9 @@ void assert_decoding_buffer(char* input_buffer) {
 }
 
 int main (int argc, char** argv) {
-
     parse_options(argc, argv, &options);
 
-    void (*actions[2])(char*, char*) = { encode, decode };
+    void (*actions[2])(char *, char *) = { encode, decode };
 
     int bytes_to_complete_buffer = 0;
     int max_bytes_to_read = 3 + options.should_decode;
