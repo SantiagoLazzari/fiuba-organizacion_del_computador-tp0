@@ -5,8 +5,8 @@
 #include <stdbool.h>
 
 typedef struct {
-  FILE* input_file;
-  FILE* output_file;
+  int input_file_descriptor;
+  int output_file_descriptor;
   bool should_decode;
 } option_t;
 
