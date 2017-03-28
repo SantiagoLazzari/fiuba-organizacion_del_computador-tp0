@@ -82,16 +82,18 @@ void parse_options(int argc, char** argv, option_t* options) {
 
       case 'i':
         options->input_file_descriptor = open(optarg, O_RDONLY);
-        if (!options->input_file_descriptor) {
+        if (options->input_file_descriptor == -1) {
           fprintf(stderr, "Filename Error: Cannot open %s to read.\n", optarg);
+          close(options->output_file_descriptor);
           exit(1);
         }
         break;
 
       case 'o':
         options->output_file_descriptor = open(optarg, O_WRONLY | O_CREAT);
-        if (!options->output_file_descriptor) {
+        if (options->output_file_descriptor == -1) {
           fprintf(stderr, "Filename Error: Cannot open %s to write.\n", optarg);
+           close(options->input_file_descriptor);
           exit(2);
         }
         break;
@@ -99,6 +101,7 @@ void parse_options(int argc, char** argv, option_t* options) {
       case 'a':
         if (strcmp(optarg, "encode") && strcmp(optarg, "decode")) {
           fprintf(stderr, "Action Error: %s is not a valid action.\n", optarg);
+          close_files(options);
           exit(3);
         }
         options->should_decode = !!strcmp(optarg, "encode");
@@ -114,6 +117,7 @@ void parse_options(int argc, char** argv, option_t* options) {
           fprintf(stderr, "Unknown option `-%c'.\n", optopt);
         else
           fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
+        close_files(options);
         exit(4);
         break;
 
@@ -130,11 +134,11 @@ void parse_options(int argc, char** argv, option_t* options) {
 }
 
 void close_files(option_t* options) {
-  int input_error = close(options->input_file_descriptor);
+  int input_error = close(options->input_file_descriptor) == -1;
   if (input_error)
     fprintf(stderr, "Error encountered while closing input file\n");
 
-  int output_error = close(options->output_file_descriptor);
+  int output_error = close(options->output_file_descriptor) == -1;
   if (output_error) {
     fprintf(stderr, "Error encountered while closing output file\n");
     exit(input_error | output_error);

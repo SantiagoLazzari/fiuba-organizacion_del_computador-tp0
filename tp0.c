@@ -16,6 +16,9 @@ char encode_table[64] = {
   '4', '5', '6', '7', '8', '9', '+', '/'
 };
 
+option_t options = { STDIN_FILENO, STDOUT_FILENO, false };
+char PADDING_SYMBOL = '=';
+
 // This conversion is based on ASCII table.
 // @base64_symbol is a symbol that appears in @encode_table
 char decode_char(char base64_symbol) {
@@ -32,6 +35,11 @@ char decode_char(char base64_symbol) {
     return base64_symbol - '0' + BASE_64_INDEX_0;
   }
 
+  if (base64_symbol != '/' && base64_symbol != '+' && base64_symbol != '=') {
+    fprintf(stderr, "Decoding error: Cannot decode symbol %c\n", base64_symbol);
+    close_files(&options);
+    exit(5);
+  }
   return 62 + base64_symbol == '/';
 }
 
@@ -87,16 +95,28 @@ int read_bytes(int input_fd, char* buffer, int bytes) {
   return bytes;
 }
 
-ssize_t write_bytes(int output_fd, char* buffer, int bytes) {
-  return write(output_fd, buffer, bytes);
+void write_bytes(int output_fd, char* buffer, int bytes) {
+  write(output_fd, buffer, bytes);
+}
+
+int padding_count(char* input, int buffer_size) {
+  int count = 0;
+  for (int i = 0; i < buffer_size; i++) count += input[i] == PADDING_SYMBOL;
+  return count;
+}
+
+void assert_decoding_buffer(char* input_buffer) {
+  if (input_buffer[0] == PADDING_SYMBOL || input_buffer[1] == PADDING_SYMBOL ||
+    (input_buffer[2] == PADDING_SYMBOL && input_buffer[3] != PADDING_SYMBOL)) {
+    fprintf(stderr, "Decoding Error: Wrong encoded message length.\n");
+    close_files(&options);
+    exit(6);
+  }
 }
 
 int main (int argc, char** argv) {
 
-    option_t options = { STDIN_FILENO, STDOUT_FILENO, false };
     parse_options(argc, argv, &options);
-
-    char padding_char = '=';
 
     void (*actions[2])(char*, char*) = { encode, decode };
 
@@ -107,6 +127,7 @@ int main (int argc, char** argv) {
     while (!bytes_to_complete_buffer) {
       char input[4] = {0};
       char output[4] = {0};
+
       bytes_to_complete_buffer = read_bytes(options.input_file_descriptor, input, max_bytes_to_read);
 
       if (bytes_to_complete_buffer == max_bytes_to_read) {
@@ -114,11 +135,30 @@ int main (int argc, char** argv) {
         break;
       }
 
+      if (bytes_to_complete_buffer && options.should_decode) {
+        fprintf(stderr, "Decoding Error: Wrong encoded message length.\n");
+        exit(6);
+      }
+
+      if (options.should_decode) assert_decoding_buffer(input);
+
+      int bytes_to_write = max_bytes_to_write
+              - bytes_to_complete_buffer
+              - options.should_decode * padding_count(input, max_bytes_to_read);
+
+      // If the last char for a buffer is '=', we simply quit reading from input file.
+      // For encoding, input[3] is a unused byte. So, the only chance to get a
+      // '=' in input[3] is in decoding.
+      bool should_stop = input[3] == PADDING_SYMBOL;
+
       actions[options.should_decode](input, output);
-      write_bytes(options.output_file_descriptor, output, max_bytes_to_write - bytes_to_complete_buffer);
+
+      write_bytes(options.output_file_descriptor, output, bytes_to_write);
+
+      if (should_stop) break;
     }
 
-    while (bytes_to_complete_buffer--) write(options.output_file_descriptor, &padding_char, 1);
+    while (bytes_to_complete_buffer--) write(options.output_file_descriptor, &PADDING_SYMBOL, 1);
 
     close_files(&options);
     return 0;
