@@ -74,7 +74,7 @@ void parse_options(int argc, char** argv, option_t* options) {
     switch (seen_option) {
       case 'V':
         print_version();
-        break;
+        exit(0);
 
       case 'h':
         print_help();
