@@ -78,7 +78,7 @@ void parse_options(int argc, char** argv, option_t* options) {
 
       case 'h':
         print_help();
-        break;
+        exit(0);
 
       case 'i':
         options->input_file_descriptor = open(optarg, O_RDONLY);
