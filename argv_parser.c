@@ -90,7 +90,7 @@ void parse_options(int argc, char** argv, option_t* options) {
         break;
 
       case 'o':
-        options->output_file_descriptor = open(optarg, O_WRONLY | O_CREAT);
+        options->output_file_descriptor = open(optarg, O_WRONLY | O_CREAT, 0640);
         if (options->output_file_descriptor == -1) {
           fprintf(stderr, "Filename Error: Cannot open %s to write.\n", optarg);
            close(options->input_file_descriptor);
