@@ -96,7 +96,11 @@ int read_bytes(int input_fd, char* buffer, int bytes) {
 }
 
 void write_bytes(int output_fd, char* buffer, int bytes) {
-  write(output_fd, buffer, bytes);
+  if (write(output_fd, buffer, bytes) != bytes) {
+    fprintf(stderr, "Write error: did not write de ammount of bytes that should");
+    close_files(&options);
+    exit(-1);
+  }
 }
 
 int padding_count(char* input, int buffer_size) {
@@ -157,7 +161,7 @@ int main (int argc, char** argv) {
       if (should_stop) break;
     }
 
-    while (bytes_to_complete_buffer--) write(options.output_file_descriptor, &PADDING_SYMBOL, 1);
+    while (bytes_to_complete_buffer--) write_bytes(options.output_file_descriptor, &PADDING_SYMBOL, 1);
 
     close_files(&options);
     return 0;
