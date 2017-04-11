@@ -96,7 +96,11 @@ int read_bytes(int input_fd, char* buffer, int bytes) {
 }
 
 void write_bytes(int output_fd, char* buffer, int bytes) {
-  write(output_fd, buffer, bytes);
+  if (write(output_fd, buffer, bytes) != bytes) {
+    fprintf(stderr, "Write error: did not write de ammount of bytes that should");
+    close_files(&options);
+    exit(-1);
+  }
 }
 
 int padding_count(char* input, int buffer_size) {
