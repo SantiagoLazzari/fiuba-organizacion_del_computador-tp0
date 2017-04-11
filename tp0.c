@@ -161,7 +161,7 @@ int main (int argc, char** argv) {
       if (should_stop) break;
     }
 
-    while (bytes_to_complete_buffer--) write(options.output_file_descriptor, &PADDING_SYMBOL, 1);
+    while (bytes_to_complete_buffer--) write_bytes(options.output_file_descriptor, &PADDING_SYMBOL, 1);
 
     close_files(&options);
     return 0;
